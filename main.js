@@ -1,23 +1,18 @@
-// 1. Simple Interaction: Greeting message in the console
-console.log("Portfolio loaded successfully!");
 
-// 2. Simple Interaction: Smooth Scroll for navigation links
-document.querySelectorAll('nav a').forEach(anchor => {
-    anchor.addEventListener('click', function(e) {
-        // Only apply to internal links
-        if (this.getAttribute('href').startsWith('#')) {
-            e.preventDefault();
-            const target = document.querySelector(this.getAttribute('href'));
-            target.scrollIntoView({ behavior: 'smooth' });
-        }
-    });
-});
+document.addEventListener('DOMContentLoaded', () => {
+    
+    console.log("Welcome to my Portfolio!");
 
-// 3. Simple Form/Link Validation
-// Alert the user when they click a contact link
-const contactButtons = document.querySelectorAll('.links a');
-contactButtons.forEach(button => {
-    button.addEventListener('click', () => {
-        alert("Redirecting you to my profile/email!");
+    // Contact Link Alert (Simple Interaction)
+    const contactLinks = document.querySelectorAll('.links a');
+    
+    contactLinks.forEach(link => {
+        link.addEventListener('click', (event) => {
+            // Show a small confirmation when clicking email/links
+            const target = event.target.innerText;
+            console.log(`Navigating to: ${target}`);
+        });
     });
+
+  
 });
