@@ -15,41 +15,64 @@ header {
     justify-content: space-between;
     align-items: center;
 }
+.navbar-glass {
+    
 
-.navbar {
+    position: sticky;
+    top: 20px; /* Floats 20px from the top */
+    z-index: 1000;
+    
+    
     display: flex;
-    list-style: none;
-    justify-content: center;
-    gap: 2rem; 
-    padding: 8px;
-    background-color: #e7b84b;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    position: sticky; 
-    top: 0;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 700px; /* Slightly smaller than body to look floating */
+    margin: 0 auto 40px auto; /* Centers the bar */
+    padding: 15px 30px;
+    
+    /* The Glass Effect */
+    background: rgba(255, 255, 255, 0.25); /* Semi-transparent white */
+    backdrop-filter: blur(12px); /* The blur magic */
+    -webkit-backdrop-filter: blur(12px); /* Safari support */
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    
+    /* Shape & Shadow */
+    border-radius: 50px; /* The Pill Shape */
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
 }
+
+/* .logo {
+    font-weight: 800;
+    font-size: 1.2rem;
+    color: #333;
+    letter-spacing: -0.5px;
+} */
+
 
 .nav-links {
     display: flex;
+    gap: 30px;
     list-style: none;
-}
-
-.nav-links li {
-    margin-left: 30px;
-    margin-right: 30px;
-
+    margin: 0;
+    padding: 0;
 }
 
 .nav-links a {
     text-decoration: none;
-    color: #ffffff;
-    font-size:larger;
-    font-weight: 500;
-    transition: color 0.2s ease; 
+    color: #444;
+    font-weight: 600;
+    font-size: 0.95rem;
+    position: relative;
+    transition: all 0.3s ease;
 }
 
+/* Cool Hover Effect: Text slides up slightly and changes color */
 .nav-links a:hover {
-    color: #a365ff; 
+    color: #e7b84b; /* Your gold color */
+    transform: translateY(-2px);
+    display: inline-block;
 }
+
 
 nav a {
     margin-left: 15px;

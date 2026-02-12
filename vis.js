@@ -3,25 +3,58 @@ function createSVG(tag) {
     return document.createElementNS("http://www.w3.org/2000/svg", tag);
 }
 
-//1. STATISTICAL VISUALIZATION
+// 1. STATISTICAL VISUALIZATION (Simple & Static)
 
 const visContainer = document.getElementById('vis-container');
-const svgVis = createSVG("svg");
+
+// Helper to create SVG elements
+const ns = "http://www.w3.org/2000/svg";
+const svgVis = document.createElementNS(ns, "svg");
+
+// Set up the box
 svgVis.setAttribute("width", "100%");
-svgVis.setAttribute("height", "200");
+svgVis.setAttribute("height", "250");
 svgVis.setAttribute("viewBox", "0 0 400 200");
+svgVis.style.border = "1px solid #ddd"; // Optional border
+svgVis.style.borderRadius = "8px";
 
-// Draw the Bell Curve Path
-const bellPath = createSVG("path");
-// M=Start, Q=Quadratic Curve (Control Point, End Point)
-bellPath.setAttribute("d", "M 50 180 Q 200 -50 350 180");
-bellPath.setAttribute("stroke", "#007AFF");
-bellPath.setAttribute("fill", "rgba(0, 122, 255, 0.1)");
-bellPath.setAttribute("stroke-width", "3");
+// --- Calculate the Bell Curve Points ---
+let points = [];
+const width = 400;
+const height = 200;
+const mean = width / 2;    // Center (200)
+const sigma = 45;          // Spread (Standard Deviation)
 
-svgVis.appendChild(bellPath);
+// Loop across the width of the SVG
+for (let x = 0; x <= width; x += 5) {
+    // The Math: Gaussian Function
+    const exponent = -0.5 * Math.pow((x - mean) / sigma, 2);
+    const y = height - (Math.exp(exponent) * 150); // 150 is the height of the peak
+    points.push(`${x},${y}`);
+}
+
+// Close the shape at the bottom for the fill
+const fillPoints = [...points, `${width},${height}`, `0,${height}`].join(" ");
+const linePoints = points.join(" ");
+
+// --- Draw the Fill (Light Blue Area) ---
+const area = document.createElementNS(ns, "polygon");
+area.setAttribute("points", fillPoints);
+area.setAttribute("fill", "rgba(0, 122, 255, 0.15)"); // Light Blue
+svgVis.appendChild(area);
+
+// --- Draw the Line (Dark Blue Curve) ---
+const line = document.createElementNS(ns, "polyline");
+line.setAttribute("points", linePoints);
+line.setAttribute("fill", "none");
+line.setAttribute("stroke", "#007AFF"); // SFU Blue
+line.setAttribute("stroke-width", "3");
+line.setAttribute("stroke-linecap", "round");
+line.setAttribute("stroke-linejoin", "round");
+svgVis.appendChild(line);
+
+// Add to page
 visContainer.appendChild(svgVis);
-
 
 // 2. CREATIVE SVG ART: "SFU" Circle
 const artContainer = document.getElementById('art-container');
