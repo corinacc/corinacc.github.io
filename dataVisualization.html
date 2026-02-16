@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualizations | SFU Portfolio</title>
+    
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vega-tooltip@0.28.0/build/vega-tooltip.min.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vega@5"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vega-lite@5"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vega-lite-api@5.6.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vega-tooltip"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vega-embed@6"></script>
+
+    <script>
+      const options = {
+        config: {},
+        init: (view) => { view.tooltip(new vegaTooltip.Handler().call); },
+        view: { loader: vega.loader({ baseURL: "https://cdn.jsdelivr.net/npm/vega-datasets@2/" }), renderer: "canvas" },
+      };
+      vl.register(vega, vegaLite, options);
+    </script>
+</head>
+
+<body>
+
+   <header>
+        <nav class="navbar"> 
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="visualizations.html">Visualizations</a></li>
+                <li><a href="dataVisualization.html">Data Visualization</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <section id="data">
+      <h2>Data Visualization</h2>
+     
+      <h3>1. Global Sales by Genre and Platform</h3>
+      <div id="view"></div>
+      
+      <br><br/>
+      <div id="view2"></div>
+
+      <h3>2. Sales Over Time by Platform and Genre</h3>
+      <div id="view3"></div>
+      
+      <br><br/>
+
+      <div id="view4"></div>
+       
+      <h3>3. Regional Sales vs. Platform </h3>
+      <div id="view5"></div>
+          
+          <br><br/>
+          <div id="view6"></div>
+
+          <h3>4: Tell Us a Visual Story with the Data</h3>
+          <div id="view7"></div>
+          
+          <br><br/>
+          <div id="view8"></div>
+
+    </section>
+    
+
+    <script type="module" src="dataVis.js"></script>
+</body>
+</html>

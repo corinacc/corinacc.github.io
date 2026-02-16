@@ -18,7 +18,7 @@ svgVis.setAttribute("viewBox", "0 0 400 200");
 svgVis.style.border = "1px solid #ddd"; // Optional border
 svgVis.style.borderRadius = "8px";
 
-// --- Calculate the Bell Curve Points ---
+// Calculate the Bell Curve Points 
 let points = [];
 const width = 400;
 const height = 200;
@@ -37,17 +37,17 @@ for (let x = 0; x <= width; x += 5) {
 const fillPoints = [...points, `${width},${height}`, `0,${height}`].join(" ");
 const linePoints = points.join(" ");
 
-// --- Draw the Fill (Light Blue Area) ---
+// Draw the Fill (Light Blue Area)
 const area = document.createElementNS(ns, "polygon");
 area.setAttribute("points", fillPoints);
 area.setAttribute("fill", "rgba(0, 122, 255, 0.15)"); // Light Blue
 svgVis.appendChild(area);
 
-// --- Draw the Line (Dark Blue Curve) ---
+// Draw the Line (Dark Blue Curve)
 const line = document.createElementNS(ns, "polyline");
 line.setAttribute("points", linePoints);
 line.setAttribute("fill", "none");
-line.setAttribute("stroke", "#007AFF"); // SFU Blue
+line.setAttribute("stroke", "#007AFF");
 line.setAttribute("stroke-width", "3");
 line.setAttribute("stroke-linecap", "round");
 line.setAttribute("stroke-linejoin", "round");
@@ -56,7 +56,7 @@ svgVis.appendChild(line);
 // Add to page
 visContainer.appendChild(svgVis);
 
-// 2. CREATIVE SVG ART: "SFU" Circle
+// CREATIVE SVG ART: "SFU" Circle
 const artContainer = document.getElementById('art-container');
 const svgArt = createSVG("svg");
 svgArt.setAttribute("width", "100%");
@@ -77,7 +77,7 @@ allLetters.forEach(pos => {
     circle.setAttribute("cy", pos[1]);
     circle.setAttribute("r", "10");
     
-    // Generate a random vibrant color (HSL)
+    // Generate a random vibrant color
     const hue = Math.floor(Math.random() * 360);
     circle.setAttribute("fill", `hsl(${hue}, 80%, 60%)`);
     

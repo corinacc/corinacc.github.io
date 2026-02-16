@@ -5,22 +5,36 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Visualizations | SFU Portfolio</title>
     <link rel="stylesheet" href="style.css">
+    
+    <style>
+        #vis-container, #art-container {
+            width: 100%;
+            min-height: 500px; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: rgba(255,255,255,0.5); 
+            border-radius: 12px;
+        }
+    </style>
 </head>
 <body>
 
-   <header>
-        <nav class="navbar"> 
+    <header>
+        <nav class="navbar navbar-glass"> 
             <ul class="nav-links">
                 <li><a href="index.html">Home</a></li>
                 <li><a href="visualizations.html">Visualizations</a></li>
+                <li><a href="dataVisualization.html">Data Visualization</a></li>
             </ul>
         </nav>
     </header>
 
     <main>
-        <section style="text-align: center;">
+        <section class="intro-section" style="text-align: center;">
             <h1>Visualization Portfolio</h1>
-                </section>
+            <p class="subtitle">Exploring D3.js and SVG Graphics</p>
+        </section>
 
         <section>
             <h2>Statistical Visualization</h2>
@@ -30,13 +44,13 @@
 
         <section>
             <h2>Creative SVG Art</h2>
-            <p>An interactive colorful assembly of "SFU". </p>
+            <p>An interactive colorful assembly of "SFU".</p>
             <div id="art-container"></div>
         </section>
     </main>
 
     <footer>
-        <p></p>
+        <p>&copy; 2026 Corina.</p>
     </footer>
 
     <script src="vis.js"></script>
