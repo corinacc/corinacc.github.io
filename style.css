@@ -4,14 +4,14 @@ body {
     color: #333;
     
 
-    max-width: 1600px; 
+    max-width: 1000px; 
     width: 95%;
     
     margin: 0 auto;
     padding: 20px;
     background-color: hsl(36, 100%, 94%);
     
-    font-size: 28px;
+    font-size: 18px;
 }
 
 header {
@@ -21,7 +21,7 @@ header {
 .navbar-glass {
     position: sticky;
     top: 20px;
-    z-index: 1000;    
+    z-index: 800;    
     display: flex;
     justify-content: center; 
     align-items: center;
@@ -52,7 +52,7 @@ header {
     text-decoration: none;
     color: #444;
     font-weight: 700;
-    font-size: 2.0rem; 
+    font-size: 1.6rem; 
     transition: all 0.3s ease;
 }
 
@@ -73,13 +73,13 @@ section {
 
 /* typography  */
 h1 {
-    font-size: 3.5rem; 
+    font-size: 2.5rem; 
     margin-bottom: 10px;
     text-align: center;
 }
 
 h2 {
-    font-size: 2.5rem; 
+    font-size: 2.0rem; 
     margin-bottom: 30px;
     color: #111;
     border-bottom: 2px solid #e7b84b;
@@ -88,7 +88,7 @@ h2 {
 }
 
 h3 {
-    font-size: 2rem;
+    font-size: 1.8rem;
     margin-bottom: 10px;
 }
 li {
@@ -104,7 +104,7 @@ li {
 }
 
 .bio {
-    max-width: 900px;
+    max-width: 400px;
     margin: 0 auto;
     text-align: center;
     font-size: 1.4rem;
@@ -168,7 +168,7 @@ footer {
 
 /* Visualization Containers*/
 #view, #view2, #view3, #view4 {
-  width: 100%;
+  width: 90%;
   height: auto;
   min-height: 500px; 
   max-width: 100%; 

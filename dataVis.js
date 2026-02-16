@@ -37,7 +37,7 @@ fetchData().then(async ({ wideData, longData }) => {
     )
     .title("Global Sales by Genre and Platform")
     .width("container")
-    .height(400)
+    .height(600)
     .toSpec();
 
 
@@ -86,7 +86,7 @@ fetchData().then(async ({ wideData, longData }) => {
     )
     .title("Global Sales by Genre")
     .width("container")
-    .height(400)
+    .height(600)
     .toSpec();
 
 //View 3: 悬停高亮折线图 Hover & Highlight
@@ -147,7 +147,7 @@ const platformHover = vl.selectPoint('platformHover')
     )
     .title("Sales Trends by Major Platform (>280M Lifetime Sales)")
     .width("container")
-    .height(500)
+    .height(600)
     .toSpec();
 
 // view 4
@@ -232,7 +232,7 @@ const platformHover = vl.selectPoint('platformHover')
     )
     .title("Sales Trends: Top 8 Genres (2000-2016)")
     .width("container")
-    .height(500)
+    .height(600)
     .toSpec();
 
 
@@ -297,7 +297,7 @@ const platformHover = vl.selectPoint('platformHover')
       ])
     )
     .title("Regional Sales by Platform (Recent 10 Years)")
-    .width(580)
+    .width(1320)
     .height(800)
     .toSpec();
 
@@ -367,8 +367,8 @@ const platformHover = vl.selectPoint('platformHover')
         }      ])
     )
     .title("Sales by Platform and Region (Stacked Bar Chart)")
-    .width(580)
-    .height(400)
+    .width(1320)
+    .height(600)
     .toSpec();
 
 
@@ -447,8 +447,8 @@ const platformHover = vl.selectPoint('platformHover')
       ])
     )
     .title("Battle of the Giants: Publisher Trends in Japan")
-    .width(520)
-    .height(400)
+    .width(1320)
+    .height(600)
     .toSpec();
 
   // 渲染
@@ -496,8 +496,8 @@ const platformHover = vl.selectPoint('platformHover')
       ])
     )
     .title("Genre Hotspots: Where is each Genre popular?")
-    .width(540) // 热力图不需要太宽
-    .height(400)
+    .width(1320) 
+    .height(600)
     .toSpec();
 
 
