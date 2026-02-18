@@ -1,18 +1,18 @@
 async function fetchData() {
-  // 加载宽格式数据
+  // load wide format data
   const wideData = await d3.csv("./dataset/videogames_wide.csv");
-  // 加载长格式数据
+  // load long format data
   const longData = await d3.csv("./dataset/videogames_long.csv");
   return { wideData, longData };
 }
 
 fetchData().then(async ({ wideData, longData }) => {
   
- // 热力图：按游戏类型和平台的全球销量
+ // heat map: Genre vs Platform (Global Sales)
   const vlSpec = vl
     .markRect()
     .data(wideData)
-    // 使用Vega Lite的transform进行数据汇总
+    // aggregate to get total sales by Genre and Platform
     .transform(
       {
         aggregate: [{op: "sum", field: "Global_Sales", as: "total_sales"}],
@@ -25,55 +25,55 @@ fetchData().then(async ({ wideData, longData }) => {
       vl.color().fieldQ("total_sales").title("Global Sales"), 
       
     vl.tooltip([
-        vl.fieldN("Genre"),
+        vl.fieldN("Genre"), // 
         vl.fieldN("Platform"),
         {
-          field: "total_sales",
-          type: "quantitative",
-          format: ".2f",
-          title: "Total Sales (M)"
+          field: "total_sales",     // numeric field for tooltip
+          type: "quantitative",     // specify type for proper formatting
+          format: ".2f",            // format to 2 decimal places
+          title: "Total Sales (M)"  // tooltip title
         }
       ])
     )
     .title("Global Sales by Genre and Platform")
     .width("container")
-    .height(600)
+    .height(400)
     .toSpec();
 
 
-//View 2: 全球销量柱状图
+//View 2: Interactive Bar Chart 
   
-  // 1. 定义交互：点击图例筛选
+  // icon-based selection
   const genreSelect = vl.selectPoint('genreSelect')
-    .fields('Genre')    // 绑定字段
-    .bind('legend');    // 【关键】绑定到图例上，实现“点击小图标”效果
+    .fields('Genre')    // choice based on Genre
+    .bind('legend');    // link selection to legend 
 
   const vlSpec2 = vl
     .markBar()
     .data(wideData)
     .transform(
-      // 记得加上 groupby，否则只会显示一根总柱子
+      // group by Genre and sum sales for the bar height
       vl.aggregate(
         [{op: "sum", field: "Global_Sales", as: "total_sales"}]
       ).groupby(["Genre"]) 
     )
     .params(genreSelect) 
     .encode(
-      // X轴：游戏类型 (按销量排序)
+      // x axis: Genre, sorted by sales
       vl.x().fieldN("Genre")
         .sort("-y")
         .title("Genre"),
 
-      // Y轴：全球销量
+      // y asix: Total Sales
       vl.y().fieldQ("total_sales")
         .title("Global Sales (Millions)"),
 
-      // 颜色
+      // color: one color per genre
       vl.color().fieldN("Genre")
         .title("Genre")
         .scale({scheme: "tableau20"}),
 
-      // 【关键】交互逻辑：点击图例时，选中的不透明(1)，没选中的变淡(0.1)
+      // highlight selected genre, fade others
       vl.opacity()
         .condition({param: "genreSelect", value: 1})
         .value(0.1),
@@ -86,76 +86,72 @@ fetchData().then(async ({ wideData, longData }) => {
     )
     .title("Global Sales by Genre")
     .width("container")
-    .height(600)
+      .height(400)
     .toSpec();
 
-//View 3: 悬停高亮折线图 Hover & Highlight
+//View 3 line chart: Sales Trends by Platform 
 const platformHover = vl.selectPoint('platformHover')
-    .fields('Platform')
-    .on('pointerover')
-    .clear('pointerout')
+    .fields('Platform') // Trigger when hovering over the line itself
+    .on('pointerover') // trigger on hover
+    .clear('pointerout') 
     .bind('legend');
 
   const lineSpec = vl
     .markLine({
       interpolate: 'monotone',
-      point: false
+      point: false // no points, just smooth lines
     })
     .data(wideData)
     .transform(
       vl.filter("datum.Year > 0"),
 
       // Lifetime Sales
-      // joinaggregate 会在每一行数据上附加上该平台的总销量，而不改变行数
+      //joinaggregate calculates the total sales for each platform across all years, creating a new field 'platform_lifetime_sales'
       vl.joinaggregate([
         {op: "sum", field: "Global_Sales", as: "platform_lifetime_sales"}
       ]).groupby(["Platform"]),
 
-      // 这里设定阈值为 280M 只保留大平台，线条会少而精
+      // filter out platforms with low lifetime sales under 280M to reduce clutter 
       vl.filter("datum.platform_lifetime_sales > 280"),
 
-      // 4. 按年份聚合 (原有的逻辑)
+      // aggregate for the line chart: sum sales by Year and Platform
       vl.aggregate(
         [{op: "sum", field: "Global_Sales", as: "total_sales"}]
       ).groupby(["Year", "Platform"]),
 
-      // 5. 【新增】过滤单年销量过低的点 (可选)
-    
+      // filter out years with zero sales to avoid flat lines at the bottom
       vl.filter("datum.total_sales > 1")
     )
-    .params(platformHover)
+    .params(platformHover) // add the hover interaction
     .encode(
-      vl.x().fieldQ("Year")
-        .scale({ zero: false })
-        .axis({ format: "d", title: "Release Year" }),
+      vl.x().fieldQ("Year")   // x axis: Year
+        .scale({ zero: false }) // start x axis at first year with sales, not zero
+        .axis({ format: "d", title: "Release Year" }), // format x axis as integers
 
       vl.y().fieldQ("total_sales")
         .title("Total Sales (Millions)"),
 
       vl.color().fieldN("Platform").title("Platform"),
       
-      // 交互样式
-      vl.opacity().condition({param: "platformHover", value: 1}).value(0.1),
-      vl.strokeWidth().condition({param: "platformHover", empty: false, value: 3}).value(2),
-      vl.order().condition({param: "platformHover", value: 1}).value(0),
+      // Interaction Styling:
+      vl.opacity().condition({param: "platformHover", value: 1}).value(0.1), // fade non-hovered lines
+      vl.strokeWidth().condition({param: "platformHover", empty: false, value: 3}).value(2), // thicken hovered line
+      vl.order().condition({param: "platformHover", value: 1}).value(0), // bring hovered line to front
 
       vl.tooltip([
         vl.fieldN("Platform"),
         vl.fieldQ("Year"),
-        {field: "total_sales", format: ".2f", title: "Sales (M)"}
+        {field: "total_sales", format: ".2f", title: "Sales (M)"} // 2decimal places in tooltip
       ])
     )
     .title("Sales Trends by Major Platform (>280M Lifetime Sales)")
     .width("container")
-    .height(600)
+    .height(400)
     .toSpec();
 
-// view 4
-/// --- View 4 (Fixed): Top 8 Genre Sales (Fixed Hover) ---
+// View 4 Line Chart: Sales Trends of Top 5 Genres 
 
-  // 1. Define Interaction
-  // Removed 'nearest(true)' so it triggers when you touch the line itself
-  const genreHighlight = vl.selectPoint('genreHighlight')
+  const genreHighlight = vl.selectPoint('genreHighlight') 
     .fields('Genre')
     .bind('legend')      // Interactive Legend
     .on('mouseover')     // Trigger on hover
@@ -165,27 +161,27 @@ const platformHover = vl.selectPoint('platformHover')
     .markLine({
       interpolate: 'monotone',
       strokeWidth: 3, // Base thickness
-      point: true     // [OPTIONAL] Set to true if you want dots, or keep false for clean lines
-    })
+      point: true     // Show points for better hover targeting
+    }) 
     .data(wideData)
     .transform(
-      // 1. Filter Year
-      vl.filter("datum.Year >= 2000"),
+      // Filter Year >= 2000 to focus on modern trends and reduce clutter
+      vl.filter("datum.Year >= 2000 && datum.Year <= 2016"),
 
-      // 2. Calculate Total Sales per Genre
+      // Calculate Total Sales per Genre
       vl.joinaggregate([
         {op: "sum", field: "Global_Sales", as: "genre_total_sales"}
       ]).groupby(["Genre"]),
 
-      // 3. Rank and Filter Top 5
+      //  Rank and Filter Top 5
       vl.window([
-        {op: "dense_rank", field: "genre_total_sales", as: "rank"}
+        {op: "dense_rank", field: "genre_total_sales", as: "rank"} // Rank genres by total sales
       ]).sort([
         {field: "genre_total_sales", order: "descending"}
-      ]),
-      vl.filter("datum.rank <= 5"),
+      ]), 
+      vl.filter("datum.rank <= 5"), // Keep only top 5 genres
 
-      // 4. Aggregate for the chart
+      // Aggregate sum sales by Year and Genre 
       vl.aggregate(
         [{op: "sum", field: "Global_Sales", as: "total_sales"}]
       ).groupby(["Year", "Genre"])
@@ -195,9 +191,9 @@ const platformHover = vl.selectPoint('platformHover')
       // X & Y Axis
       vl.x().fieldQ("Year")
         .scale({ zero: false })
-        .axis({ format: "d", title: "Year" }),
+        .axis({ format: "d", title: "Year" }), 
       
-      vl.y().fieldQ("total_sales")
+      vl.y().fieldQ("total_sales") 
         .title("Global Sales (Millions)"),
 
       // Color
@@ -206,19 +202,17 @@ const platformHover = vl.selectPoint('platformHover')
         .sort({field: "total_sales", op: "sum", order: "descending"})
         .scale({scheme: "tableau10"}),
 
-      // --- Interaction Styling ---
-
-      // 1. Opacity: Fade out non-selected lines
+      // Opacity: Fade out non-selected lines
       vl.opacity()
         .condition({param: "genreHighlight", value: 1})
         .value(0.1),
 
-      // 2. Stroke Width: Thicken the hovered line
+      // Stroke Width: Thicken the hovered line
       vl.strokeWidth()
         .condition({param: "genreHighlight", empty: false, value: 6})
         .value(3),
 
-      // 3. Order: Bring hovered line to front
+      // Order: Bring hovered line to front
       vl.order()
         .condition({param: "genreHighlight", value: 1})
         .value(0),
@@ -231,12 +225,12 @@ const platformHover = vl.selectPoint('platformHover')
       ])
     )
     .title("Sales Trends: Top 8 Genres (2000-2016)")
-    .width("container")
-    .height(600)
+   .width("container")
+    .height(400)
     .toSpec();
 
 
-// --- View 5: 交互式水平分组柱状图 (Regional Sales) ---
+// view5: Grouped Bar Chart: Regional Sales by Platform (Recent 10 Years)
 
   const regionHighlight = vl.selectPoint('regionHighlight')
     .fields('sales_region')
@@ -248,35 +242,34 @@ const platformHover = vl.selectPoint('platformHover')
     .markBar()
     .data(longData)
     .transform(
-      // 1. 【关键修改】过滤年份：同步只看最近 10 年
+      // filter to recent 10 years to focus on current market and reduce clutter
       vl.filter("datum.year >= 2010"), 
 
-      // 2. 数据清洗
+      // change sales_region field for better display in legend and tooltip
       {
         calculate: "replace(datum.sales_region, '_', ' ')",
         as: "sales_region"
       },
-      // 3. 计算平台在此期间的总销量
+      // aggregate to get total sales by platform for filtering low-sales platforms
       {
         joinaggregate: [{op: "sum", field: "sales_amount", as: "platform_total"}],
         groupby: ["platform"]
       },
-      // 4. 【关键修改】过滤低销量平台：阈值可根据最近10年的数据量调整
-      vl.filter("datum.platform_total > 50"), // 只显示近期活跃或销量尚可的平台
-
-      // 5. 绘图聚合
+      // filter out platforms with low total sales
+      vl.filter("datum.platform_total > 50"), 
+      
       {
         aggregate: [{op: "sum", field: "sales_amount", as: "total_sales"}],
         groupby: ["platform", "sales_region", "platform_total"]
       }
     )
-    .params(regionHighlight)
+    .params(regionHighlight) // add hover interaction for sales region
     .encode(
-      // Y轴：按销量排序
+      // Y axis: Platform, sorted by total sales to keep the biggest platforms at the top
       vl.y().fieldN("platform")
         .sort({field: "platform_total", order: "descending"}) 
         .title("Platform"),
-
+      // X axis: Sales amount
       vl.x().fieldQ("total_sales")
         .title("Sales Amount (Millions)"),
 
@@ -286,7 +279,7 @@ const platformHover = vl.selectPoint('platformHover')
 
       vl.yOffset().fieldN("sales_region"),
 
-      vl.opacity()
+      vl.opacity() // Highlight selected region, fade others
         .condition({param: "regionHighlight", value: 1})
         .value(0.1),
 
@@ -297,18 +290,19 @@ const platformHover = vl.selectPoint('platformHover')
       ])
     )
     .title("Regional Sales by Platform (Recent 10 Years)")
-    .width(1320)
-    .height(800)
+    .width(680)
+    .height(500)
     .toSpec();
 
 
-  // view：6堆叠柱状图：按平台和销售地区的销量
+  // view 6: Stacked Bar Chart: Sales by Platform and Region
   const vlSpec3 = vl
     .markBar()
-    .data(longData)
-    // 使用Vega Lite的transform进行数据汇总
+    .data(longData) // use long format data for easier region-based encoding and interaction
+
+    // calculate a new field 'sales_region' by replacing underscores with spaces for better display in legend and tooltip
     .transform(
-      // 将sales_region中的下划线替换为空格
+      // replace underscores in sales_region for better display
       {
         calculate: "replace(datum.sales_region, '_', ' ')",
         as: "sales_region"
@@ -319,10 +313,10 @@ const platformHover = vl.selectPoint('platformHover')
         groupby: ["platform"]
       },
 
-      // 只保留全球总销量大于 10 (M) 的平台
+      // filter out platforms with low total sales, greater than 10M 
       vl.filter("datum.platform_total > 10"),
 
-      //聚合：按平台和地区汇总，准备画图
+      //aggregate sales by platform and region for the stacked bars
       {
         aggregate: [{op: "sum", field: "sales_amount", as: "total_sales"}],
         groupby: ["platform", "sales_region"]
@@ -334,7 +328,7 @@ const platformHover = vl.selectPoint('platformHover')
         select: {
           type: "point",
           fields: ["sales_region"],
-          // nearest: true,
+          
           on: "pointerover",
           clear: "pointerout"
         },
@@ -342,166 +336,179 @@ const platformHover = vl.selectPoint('platformHover')
       }
     )
     .encode(
-      // x轴：平台，按销售金额降序排序
+      // x axis: Platform, sorted by total sales to keep biggest platforms at the top
       vl.x().fieldN("platform").sort("-y").title("Platform"),
-      // y轴：销售金额
+      // y axis: Sales amount
       vl.y().fieldQ("total_sales").title("Sales Amount"),
-      // 颜色：销售地区
+      
+      // color: Region
       vl.color().fieldN("sales_region").title("Sales Region"),
-      // 不透明度：根据选择状态调整，高亮选中项
+
+      // hover interaction: highlight selected region, fade others
       vl.opacity().condition({param: "regionSel", value: 1}).value(0.3),
-      // 边框：根据选择状态调整，高亮选中项
+      // highlight selected region 
       vl.stroke().condition({param: "regionSel", empty: false}).value(null),
-      // 顺序：确保选中的柱子显示在最上层
+      // bring selected region to front
       vl.order().condition({param: "regionSel", value: 1}).value(0),
-      // 工具提示
+      
       
       vl.tooltip([
         vl.fieldN("platform"),
         vl.fieldN("sales_region"),
         {
-          field: "total_sales",      // 字段名
-          type: "quantitative",      // 类型：数值
-          format: ".2f",             // 格式：保留两位小数
-          title: "Total Sales (M)"   // 标题
+          field: "total_sales",      // numeric field for tooltip
+          type: "quantitative",      // specify type for proper formatting
+          format: ".2f",             // format to 2 decimal places
+          title: "Total Sales (M)"   // tooltip title
         }      ])
     )
-    .title("Sales by Platform and Region (Stacked Bar Chart)")
-    .width(1320)
-    .height(600)
+    .title("Sales by Platform and Region ")
+    .width(680)
+    .height(400)
     .toSpec();
 
+    // View 7: Japan Publisher Battle 
+const jpPublisherSpec = vl.layer(
+// Layer 1: The Bubbles
+  vl.markCircle({
+    opacity: 0.7,
+    stroke: 'white',
+    strokeWidth: 1
+  })
+  .params({
+    name: "publisher_focus",
+    select: { type: "point", fields: ["Publisher"], on: "pointerover", clear: "pointerout" },
+    bind: "legend"
+  })
+  .encode(
+    // Size and Color are specific to the bubble layer
+    vl.size().fieldQ("annual_sales")
+      .title("Annual Sales (M)")
+      .scale({ range: [50, 1200] })
+      .legend({ format: "d" }),
 
+    vl.color().fieldN("Publisher")
+      .legend(null)
+      .scale({ scheme: "category10" }),
 
-   //view7: Battle of the Giants in Japan) ---
-  const jpPublisherSpec = vl
-    .markLine({
-      interpolate: "monotone", // 使用平滑曲线，更具现代感
-      point: { filled: true, size: 60 } // 添加数据点，方便鼠标定位
-    })
-    .data(wideData) // 使用 wideData
-    .transform(
-      // 1. 过滤年份：聚焦现代游戏史 (1995-2016)
-      vl.filter("datum.Year >= 1995 && datum.Year <= 2016"),
-      
-      // 2. 【关键】只筛选日本市场的几大核心发行商
-      vl.filter(vl.field("Publisher").oneOf([
-        "Nintendo", 
-        "Namco Bandai Games", 
-        "Konami Digital Entertainment", 
-        "Sony Computer Entertainment", 
-        "Capcom", 
-        "Sega", 
-        "Square Enix"
-      ])),
-      
-      // 3. 聚合：计算每年、每个发行商在日本的销量
-      {
-        aggregate: [{op: "sum", field: "JP_Sales", as: "annual_sales"}],
-        groupby: ["Year", "Publisher"]
-      }
-    )
-    .params(
-      // 定义交互：绑定图例点击 + 鼠标悬停
-      {
-        name: "publisher_focus",
-        select: { type: "point", fields: ["Publisher"], on: "pointerover", clear: "pointerout" },
-        bind: "legend"
-      }
-    )
-    .encode(
-      // X轴：年份
-      vl.x().fieldQ("Year")
-        .axis({format: "d", title: "Year", tickCount: 20}), // 增加刻度密度
+    // Interaction Opacity
+    vl.opacity().condition({param: "publisher_focus", value: 0.8}).value(0.1)
+  ),
 
-      // Y轴：日本销量
-      vl.y().fieldQ("annual_sales")
-        .title("Japan Sales (Millions)"),
+  // CHALLENGE!!!: Layer 2: The Text Labels
+  vl.markText({
+    align: "center",
+    baseline: "middle",
+    fontSize: 10,
+    fontWeight: "bold",
+    color: "black" 
+  })
+  //  Lowered threshold to show text for smaller sales values, making it more informative
+  .transform(vl.filter("datum.annual_sales > 5")) 
+  .encode(
+    // Ensure Text knows where to be (X and Y)
+    vl.x().fieldO("Year"),
+    vl.y().fieldN("Publisher"),
+    
+    // The Text Content
+    vl.text().fieldQ("annual_sales").format("d"),
 
-      // 颜色：区分发行商
-      vl.color().fieldN("Publisher")
-        .title("Publisher")
-        .scale({scheme: "category10"}), // 使用高辨识度配色
+    // Fade text on interaction
+    vl.opacity().condition({param: "publisher_focus", value: 1}).value(0.1)
+  )
+)
+// Shared Data and Transformations for both layers
+.data(wideData)
+.transform(
+  vl.filter("datum.Year >= 1995 && datum.Year <= 2016"),
+  vl.joinaggregate([
+    // calculate total lifetime sales for each publisher across all years, creating a new field 'total_lifetime_sales' used for ranking 
+    {op: "sum", field: "JP_Sales", as: "total_lifetime_sales"}
+  ]).groupby(["Publisher"]), 
 
-      // --- 交互魔法 ---
-      // 1. 透明度：未选中的变淡 (0.1)，选中的保持不透明 (1)
-      vl.opacity()
-        .condition({param: "publisher_focus", value: 1})
-        .value(0.1),
+  vl.window([
+    {op: "dense_rank", field: "total_lifetime_sales", as: "rank"}
+  ]).sort([
+    {field: "total_lifetime_sales", order: "descending"}
+  ]),
+  vl.filter("datum.rank <= 5"),
+  vl.aggregate([
+    {op: "sum", field: "JP_Sales", as: "annual_sales"}
+  ]).groupby(["Year", "Publisher", "total_lifetime_sales"]),
+  vl.calculate("trim(replace(datum.Publisher, 'Entertainment', ''))").as("Publisher")
+)
+.encode(
+  // Shared Axis Definitions
+  vl.x().fieldO("Year")
+    .title("Year")
+    .axis({ labelAngle: -45, grid: true }),
 
-      // 2. 线宽：选中的线条变粗 (4px)，突显主角光环
-      vl.strokeWidth()
-        .condition({param: "publisher_focus", empty: false, value: 4})
-        .value(2),
+  vl.y().fieldN("Publisher")
+    .title(null)
+    .sort({field: "total_lifetime_sales", order: "descending"}),
 
-      // 3. 层级：选中的线条浮在最上层，防止被遮挡
-      vl.order()
-        .condition({param: "publisher_focus", value: 1})
-        .value(0),
+  vl.tooltip([
+    {field: "Publisher", title: "Publisher"},
+    {field: "Year", title: "Year"},
+    {field: "annual_sales", format: ".2f", title: "Sales (M)"},
+  ])
+)
+.title("Top 5 Publishers in Japan (Ranked by Total Sales)")
+.width(580)
+.height(500)
+.toSpec();
 
-      // 工具提示
-      vl.tooltip([
-        {field: "Publisher", title: "Publisher"},
-        {field: "Year", title: "Year"},
-        {field: "annual_sales", format: ".2f", title: "Sales (M)"}
-      ])
-    )
-    .title("Battle of the Giants: Publisher Trends in Japan")
-    .width(1320)
-    .height(600)
-    .toSpec();
-
-  // 渲染
-  // render("#view7", jpPublisherSpec);
-
-  // --- View 8: 游戏类型区域热力图 (使用 wideData + Fold 变换) ---
+  
+// View 8: Genre Popularity Heatmap by Region (Renamed & Filtered)
   const genreRegionSpec = vl
     .markRect({
-        cornerRadius: 4 // 让方块带点圆角，更好看
+        cornerRadius: 4
     })
-    .data(wideData) // 【关键】改回使用稳健的 wideData
+    .data(wideData) 
     .transform(
-      // 1. 【核心魔法】Fold 变换
-      // 把宽数据里的 4 列销量变成 2 列： "Region" (key) 和 "Sales" (value)
-      // 这样我们就不用担心 longData 的字段名问题了
-      vl.fold(["NA_Sales", "EU_Sales", "JP_Sales", "Other_Sales"])
-        .as("Region", "Sales"),
+      // 1. Fold ONLY the 3 major regions (This automatically drops 'Other_Sales')
+      vl.fold(["NA_Sales", "EU_Sales", "JP_Sales"]).as("RegionKey", "Sales"),
+
+      // 2. Rename: Create a friendly 'Region' name based on the key
+      vl.calculate(
+        "datum.RegionKey === 'NA_Sales' ? 'North America' : " +
+        "datum.RegionKey === 'EU_Sales' ? 'Europe' : 'Japan'"
+      ).as("Region"),
         
-      // 2. 聚合：计算每个类型在每个区域的总销量
+      // 3. Aggregate using the NEW friendly 'Region' name
       {
         aggregate: [{op: "sum", field: "Sales", as: "TotalSales"}],
         groupby: ["Genre", "Region"]
       }
     )
     .encode(
-      // Y轴：游戏类型
+      // Y-Axis: Genre
       vl.y().fieldN("Genre")
         .title("Game Genre"),
 
-      // X轴：区域 (把 NA_Sales 等名字简化一下显示会更好，但这里直接用也行)
+      // X-Axis: Region (Now uses the clean names)
       vl.x().fieldN("Region")
         .title("Sales Region")
-        .axis({labelAngle: 0}), // 标签水平显示
+        .axis({labelAngle: 0}), // Keep labels horizontal
 
-      // 颜色：深浅代表销量
+      // Color: Sales Volume
       vl.color().fieldQ("TotalSales")
         .title("Sales Amount (M)")
-        .scale({scheme: "viridis"}), // 这种蓝绿黄配色对比度很高
+        .scale({scheme: "viridis"}),
 
-      // 交互：鼠标悬停显示具体数值
+      // Tooltip
       vl.tooltip([
         {field: "Genre", title: "Genre"},
-        {field: "Region", title: "Region"},
+        {field: "Region", title: "Region"}, // Shows "North America", etc.
         {field: "TotalSales", format: ".2f", title: "Sales (Millions)"}
-      ])
+      ]) 
     )
-    .title("Genre Hotspots: Where is each Genre popular?")
-    .width(1320) 
-    .height(600)
+    .title("Genre Hotspots: Regional Preferences")
+    .width(600) 
+    .height(400)
     .toSpec();
 
-
-  // 渲染可视化
+  // reder
   render("#view", vlSpec);
   render("#view2", vlSpec2);
     render("#view3", lineSpec);
@@ -516,7 +523,7 @@ const platformHover = vl.selectPoint('platformHover')
   
 });
 
-// 渲染函数
+
 async function render(viewID, spec) {
   const result = await vegaEmbed(viewID, spec);
   result.view.run();
