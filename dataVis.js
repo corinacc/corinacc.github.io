@@ -9,6 +9,9 @@ async function fetchData() {
 fetchData().then(async ({ wideData, longData }) => {
   
  // view 1: heat map: Genre vs Platform (Global Sales)
+ // Which specific platform-genre combinations 
+ // represent the highest revenue, and which genre demonstrates the most consistent dominance?
+
   const vlSpec = vl
     .markRect()
     .data(wideData)
@@ -42,54 +45,58 @@ fetchData().then(async ({ wideData, longData }) => {
 
 
 //View 2: Interactive Bar Chart 
+// Which video game genre has achieved the highest total global sales, 
+// and how does it compare to the lowest-selling genre?
   
-  // icon-based selection
-  const genreSelect = vl.selectPoint('genreSelect')
-    .fields('Genre')    // choice based on Genre
-    .bind('legend');    // link selection to legend 
+  // View 2: Interactive Bar Chart (Horizontal)
+const genreSelect = vl.selectPoint('genreSelect')
+  .fields('Genre')    // choice based on Genre
+  .bind('legend');    // link selection to legend 
 
-  const vlSpec2 = vl
-    .markBar()
-    .data(wideData)
-    .transform(
-      // group by Genre and sum sales for the bar height
-      vl.aggregate(
-        [{op: "sum", field: "Global_Sales", as: "total_sales"}]
-      ).groupby(["Genre"]) 
-    )
-    .params(genreSelect) 
-    .encode(
-      // x axis: Genre, sorted by sales
-      vl.x().fieldN("Genre")
-        .sort("-y")
-        .title("Genre"),
+const vlSpec2 = vl
+  .markBar()
+  .data(wideData)
+  .transform(
+    // group by Genre and sum sales for the bar length
+    vl.aggregate(
+      [{op: "sum", field: "Global_Sales", as: "total_sales"}]
+    ).groupby(["Genre"]) 
+  )
+  .params(genreSelect) 
+  .encode(
+    // x axis: Total Sales (Quantitative)
+    vl.x().fieldQ("total_sales")
+      .title("Global Sales (Millions)"),
 
-      // y asix: Total Sales
-      vl.y().fieldQ("total_sales")
-        .title("Global Sales (Millions)"),
+    // y axis: Genre (Nominal), sorted by sales on x
+    vl.y().fieldN("Genre")
+      .sort("-x") // Sort descending by the X-axis value
+      .title("Genre"),
 
-      // color: one color per genre
-      vl.color().fieldN("Genre")
-        .title("Genre")
-        .scale({scheme: "tableau20"}),
+    // color: one color per genre
+    vl.color().fieldN("Genre")
+      .title("Genre")
+      .scale({scheme: "tableau20"}),
 
-      // highlight selected genre, fade others
-      vl.opacity()
-        .condition({param: "genreSelect", value: 1})
-        .value(0.1),
+    // highlight selected genre, fade others
+    vl.opacity()
+      .condition({param: "genreSelect", value: 1})
+      .value(0.1),
 
-      // Tooltip
-      vl.tooltip([
-        vl.fieldN("Genre"),
-        {field: "total_sales", format: ".2f", title: "Sales (M)"}
-      ])
-    )
-    .title("Global Sales by Genre")
-    .width("container")
-      .height(400)
-    .toSpec();
+    // Tooltip
+    vl.tooltip([
+      vl.fieldN("Genre"),
+      {field: "total_sales", format: ".2f", title: "Sales (M)"}
+    ])
+  )
+  .title("Global Sales by Genre")
+  .width("container")
+  .height(400)
+  .toSpec();
+//View 3 multi-series line chart: Sales Trends by Platform 
+//Which major platform experienced the longest period of sustained sales, 
+// and which reached the highest peak before a rapid decline?
 
-//View 3 line chart: Sales Trends by Platform 
 const platformHover = vl.selectPoint('platformHover')
     .fields('Platform') // Trigger when hovering over the line itself
     .on('pointerover') // trigger on hover
@@ -150,8 +157,9 @@ const platformHover = vl.selectPoint('platformHover')
     .toSpec();
 
 // View 4 Line Chart: Sales Trends of Top 5 Genres 
-
-  const genreHighlight = vl.selectPoint('genreHighlight') 
+// Between 2000 and 2016, which genre exhibited the spike and drop, and which remained stable?
+  
+const genreHighlight = vl.selectPoint('genreHighlight') 
     .fields('Genre')
     .bind('legend')      // Interactive Legend
     .on('mouseover')     // Trigger on hover
@@ -231,6 +239,7 @@ const platformHover = vl.selectPoint('platformHover')
 
 
 // view5: Grouped Bar Chart: Regional Sales by Platform (Recent 10 Years)
+// How do sales distributions across North America, Europe, and Japan differ by platform?
 
   const regionHighlight = vl.selectPoint('regionHighlight')
     .fields('sales_region')
@@ -296,6 +305,9 @@ const platformHover = vl.selectPoint('platformHover')
 
 
   // view 6: Stacked Bar Chart: Sales by Platform and Region
+  // Which platforms represent the highest and lowest global sales,
+  //  and how does regional market dominance shift between them?
+
   const vlSpec3 = vl
     .markBar()
     .data(longData) // use long format data for easier region-based encoding and interaction
@@ -367,7 +379,8 @@ const platformHover = vl.selectPoint('platformHover')
     .height(400)
     .toSpec();
 
-    // View 7: Japan Publisher Battle 
+  // View 7: Japan Publisher Battle 
+  //publisher in Japan shows the largest sale, and how do competitors perform during market peaks?
 const jpPublisherSpec = vl.layer(
 // Layer 1: The Bubbles
   vl.markCircle({
@@ -406,7 +419,7 @@ const jpPublisherSpec = vl.layer(
   //  Lowered threshold to show text for smaller sales values, making it more informative
   .transform(vl.filter("datum.annual_sales > 5")) 
   .encode(
-    // Ensure Text knows where to be (X and Y)
+    // Ensure Text knows where to be X and Y
     vl.x().fieldO("Year"),
     vl.y().fieldN("Publisher"),
     
@@ -460,6 +473,7 @@ const jpPublisherSpec = vl.layer(
 
   
 // View 8: Genre Popularity Heatmap by Region 
+//Which specific genre dominates sales in the three major global regions?
   const genreRegionSpec = vl
     .markRect({
         cornerRadius: 4
