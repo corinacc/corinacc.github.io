@@ -8,7 +8,7 @@ async function fetchData() {
 
 fetchData().then(async ({ wideData, longData }) => {
   
- // heat map: Genre vs Platform (Global Sales)
+ // view 1: heat map: Genre vs Platform (Global Sales)
   const vlSpec = vl
     .markRect()
     .data(wideData)
@@ -454,28 +454,28 @@ const jpPublisherSpec = vl.layer(
   ])
 )
 .title("Top 5 Publishers in Japan (Ranked by Total Sales)")
-.width(580)
+.width(600)
 .height(500)
 .toSpec();
 
   
-// View 8: Genre Popularity Heatmap by Region (Renamed & Filtered)
+// View 8: Genre Popularity Heatmap by Region 
   const genreRegionSpec = vl
     .markRect({
         cornerRadius: 4
     })
     .data(wideData) 
     .transform(
-      // 1. Fold ONLY the 3 major regions (This automatically drops 'Other_Sales')
+      // Fold ONLY the 3 major regions 
       vl.fold(["NA_Sales", "EU_Sales", "JP_Sales"]).as("RegionKey", "Sales"),
 
-      // 2. Rename: Create a friendly 'Region' name based on the key
+      // Rename: Create a friendly 'Region' name based on the key
       vl.calculate(
         "datum.RegionKey === 'NA_Sales' ? 'North America' : " +
         "datum.RegionKey === 'EU_Sales' ? 'Europe' : 'Japan'"
       ).as("Region"),
         
-      // 3. Aggregate using the NEW friendly 'Region' name
+      // Aggregate using the 'Region' name
       {
         aggregate: [{op: "sum", field: "Sales", as: "TotalSales"}],
         groupby: ["Genre", "Region"]
@@ -504,7 +504,7 @@ const jpPublisherSpec = vl.layer(
       ]) 
     )
     .title("Genre Hotspots: Regional Preferences")
-    .width(600) 
+    .width(620) 
     .height(400)
     .toSpec();
 
