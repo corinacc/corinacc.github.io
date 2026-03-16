@@ -167,10 +167,12 @@ footer {
   height: auto;
   min-height: 400px; 
   max-width: 100%; 
+
+  
   margin: 0 auto 30px;
 }
 
-/* --- Responsive for Mobile --- */
+/* Responsive for Mobile  */
 @media (max-width: 768px) {
     h1 { font-size: 1.8rem; }
     .nav-links { gap: 15px; font-size: 0.85rem; }

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Circle Animation · IAT 355</title>
+  <link rel="stylesheet" href="style.css">
+  
+</head>
+<body>
+
+  <nav class="navbar-glass">
+    <ul class="nav-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="visualizations.html">Visualizations</a></li>
+      <li><a href="dataVisualization.html">Data Vis</a></li>
+    </ul>
+  </nav>
+
+  <section>
+    <h2> Mini D3 Assignment: Circle Animation</h2>
+    <div class="counter-row">
+      <span class="counter-label">Circles: <span id="count">0</span> / 10</span>
+      <div class="dot-track" id="dot-track"></div>
+    </div>
+
+    <div id="canvas-wrap"></div>
+
+    <p class="hint">
+      <strong>Click the canvas</strong> to place a circle &nbsp;·&nbsp;
+      <strong>Click a circle</strong> to animate it
+    </p>
+  </section>
+
+
+  <script type="module" src="circleAnimation.js"></script>
+
+</body>
+</html>
